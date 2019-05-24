@@ -30,7 +30,6 @@ class DashboardController @Inject() (cc: ControllerComponents,
       urlResult match {
         case s: JsSuccess[Seq[String]] => {
           val urls = s.get
-          println(urls)
           val result = psa.uploadImages(urls)
           Ok(Json.obj(
             "jobId" -> result

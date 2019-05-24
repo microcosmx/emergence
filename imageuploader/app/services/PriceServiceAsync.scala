@@ -1,7 +1,10 @@
 package services
 
+import java.io._
+import java.net.{HttpURLConnection, URL}
 import java.util.Calendar
 
+import scala.io.Source
 import javax.inject.{Inject, _}
 import play.api.Configuration
 import play.api.i18n.{Langs, MessagesApi}
@@ -27,8 +30,33 @@ class PriceServiceAsyncImpl @Inject()(langs: Langs,
 
   override def uploadImages(urls: Seq[String]): String =  {
 
+    urls.foreach(url => {
+      this.downloadFile(url)
+    })
 
     "xxx"
+  }
+
+  def downloadFile(url:String) {
+    try {
+
+      val urlConn = new URL(url)
+      val connection = urlConn.openConnection().asInstanceOf[HttpURLConnection]
+      connection.setRequestMethod("GET")
+      val input: InputStream = connection.getInputStream
+      val fileToDownloadAs = new java.io.File("data/test.jpg")
+      val output: OutputStream = new BufferedOutputStream(new FileOutputStream(fileToDownloadAs))
+
+      val bytes = new Array[Byte](1024) //1024 bytes - Buffer size
+      Iterator
+        .continually (input.read(bytes))
+        .takeWhile (-1 !=)
+        .foreach (read=>output.write(bytes,0,read))
+      output.close()
+
+    } catch {
+      case e => println(e.getMessage)
+    }
   }
 
   override def salesTrend(): Future[String] =  {
