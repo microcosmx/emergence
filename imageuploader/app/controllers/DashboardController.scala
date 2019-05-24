@@ -2,7 +2,7 @@ package controllers
 
 import javax.inject.{Inject, _}
 import play.api.i18n._
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json._
 import play.api.mvc._
 import services._
 import akka.util.Timeout
@@ -23,11 +23,25 @@ class DashboardController @Inject() (cc: ControllerComponents,
 
   def uploadImage() = Action.async { implicit request =>
     Future{
-      val preferences = request.body.asFormUrlEncoded.get("preferences").head
-      val result = psa.uploadImages(Seq("xxx","xxx1"))
-      Ok(Json.obj(
-        "jobId" -> result
-      ))
+      val urlText = request.body.asText.get
+      val urls = Json.parse(urlText)("urls")
+      val urlResult: JsResult[Seq[String]] = urls.validate[Seq[String]]
+
+      urlResult match {
+        case s: JsSuccess[Seq[String]] => {
+          val urls = s.get
+          println(urls)
+          val result = psa.uploadImages(urls)
+          Ok(Json.obj(
+            "jobId" -> result
+          ))
+        }
+        case e: JsError => InternalServerError(Json.obj(
+          "jobId" -> "Failed"
+        ))
+      }
+
+
     }
 
   }

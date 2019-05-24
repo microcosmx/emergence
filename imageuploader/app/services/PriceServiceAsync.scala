@@ -26,11 +26,6 @@ class PriceServiceAsyncImpl @Inject()(langs: Langs,
   private var sessionId = ""
 
   override def uploadImages(urls: Seq[String]): String =  {
-    val result = ws.url(s"http://localhost:9000${config.get[String]("play.assets.urlPrefix")}/data/metrics.json")
-      .addHttpHeaders(Seq(("Content-Type","application/json"), "Charset"->"UTF-8"):_*)
-      .addQueryStringParameters(Seq(("search","play")):_*)
-      .withRequestTimeout(10000.millis)
-      .get().map(res => res.body)
 
 
     "xxx"
