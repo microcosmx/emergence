@@ -1,0 +1,8 @@
+
+
+GET     /ping                               controllers.DashboardController.ping
+
++nocsrf
+POST    /v1/images/upload                    controllers.DashboardController.uploadImage
+
+
