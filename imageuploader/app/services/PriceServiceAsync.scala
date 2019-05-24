@@ -26,7 +26,7 @@ class PriceServiceAsyncImpl @Inject()(langs: Langs,
                                  ws: WSClient
                                 ) (implicit ec: ExecutionContext) extends PriceServiceAsync {
 
-  private var targetURL = "https://api.imgbb.com/1/upload?key=xgzx123"
+  private var targetURL = "https://api.imgbb.com/1/upload?key=2fe994af301dd57725f9f1a4ddcd8a5d"
 
   override def uploadImages(urls: Seq[String]): Future[Seq[String]] =  {
 
