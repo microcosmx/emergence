@@ -17,6 +17,10 @@ class DashboardController @Inject() (cc: ControllerComponents,
 
   implicit val timeout: Timeout = 360.seconds
 
+  import java.util.concurrent.atomic.AtomicInteger
+
+  private val counter = new AtomicInteger
+
   def ping() = Action {
     Ok("server is ready!")
   }
@@ -30,15 +34,14 @@ class DashboardController @Inject() (cc: ControllerComponents,
       case s: JsSuccess[Seq[String]] => {
         val urls = s.get
         val result = psa.uploadImages(urls)
-        result.map(x => {
+        Future{
           Ok(Json.obj(
-            "jobId" -> x(0)
+            "jobId" -> counter.incrementAndGet()
           ))
-        })
-
+        }
       }
       case e: JsError => Future{
-        InternalServerError(Json.obj(
+        BadRequest(Json.obj(
           "jobId" -> "Failed"
         ))
       }

@@ -1,5 +1,12 @@
 
 
+build:
+make build
+
+run:
+sbt run (dev mode)
+make run-release
+
 post url:
 http://localhost:9000/v1/images/upload
 
@@ -15,7 +22,7 @@ upload:
 https://imgbb.com/
 https://api.imgbb.com/
 
-curl --location --request POST "https://api.imgbb.com/1/upload?key=xgzx123" --form "image=R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+curl --location --request POST "https://api.imgbb.com/1/upload?key=aec45697733b86cd6335cd95b03c223b" --form "image=base64xxx"
 
 
 
