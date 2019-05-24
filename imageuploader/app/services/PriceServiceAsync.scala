@@ -10,13 +10,13 @@ import play.api.Configuration
 import play.api.i18n.{Langs, MessagesApi}
 import play.api.libs.json._
 import play.api.libs.ws._
+import scalaj.http.{Http, MultiPart}
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
 trait PriceServiceAsync extends PriceBase {
-  def uploadImages(urls: Seq[String]): String
-  def salesTrend(): Future[String]
+  def uploadImages(urls: Seq[String]): Future[Seq[String]]
 }
 
 @Singleton
@@ -26,27 +26,29 @@ class PriceServiceAsyncImpl @Inject()(langs: Langs,
                                  ws: WSClient
                                 ) (implicit ec: ExecutionContext) extends PriceServiceAsync {
 
-  private var sessionId = ""
+  private var targetURL = "https://api.imgbb.com/1/upload?key=xgzx123"
 
-  override def uploadImages(urls: Seq[String]): String =  {
+  override def uploadImages(urls: Seq[String]): Future[Seq[String]] =  {
 
-    urls.foreach(url => {
-      this.downloadFile(url)
+    val result = urls.map(url => Future {
+      this.downAndUploadFile(url)
     })
 
-    "xxx"
+    Future.sequence(result)
   }
 
-  def downloadFile(url:String) {
+  def downAndUploadFile(url:String): String = {
     try {
 
       val urlConn = new URL(url)
       val connection = urlConn.openConnection().asInstanceOf[HttpURLConnection]
       connection.setRequestMethod("GET")
       val input: InputStream = connection.getInputStream
-      val fileToDownloadAs = new java.io.File("data/test.jpg")
-      val output: OutputStream = new BufferedOutputStream(new FileOutputStream(fileToDownloadAs))
 
+      val fileName = urlConn.getFile
+      val fileToDownloadAs = new java.io.File(s"data/${fileName.substring(fileName.lastIndexOf("/"))}")
+
+      val output: OutputStream = new BufferedOutputStream(new FileOutputStream(fileToDownloadAs))
       val bytes = new Array[Byte](1024) //1024 bytes - Buffer size
       Iterator
         .continually (input.read(bytes))
@@ -54,67 +56,31 @@ class PriceServiceAsyncImpl @Inject()(langs: Langs,
         .foreach (read=>output.write(bytes,0,read))
       output.close()
 
+      val result = callAsync(fileToDownloadAs.getName, input)
+      val json = Json.parse(result)
+      json("data")("url_viewer").toString()
+
     } catch {
-      case e => println(e.getMessage)
+      case e => e.getMessage
     }
   }
 
-  override def salesTrend(): Future[String] =  {
 
-    val metricsResponse: Future[String] = for {
-      sId <- getSessionIdAsync
-      view <- loadViewAsync("performance")
-      metrics <- getMetricsAsync(Seq("slsu", "slss"))
-    } yield metrics
-    metricsResponse
+  private def callAsync(name: String, input: InputStream) = {
+//    val result = ws.url(s"https://api.imgbb.com/1/upload?key=xgzx123")
+//        .withBody(Source.fromURL(url).toStream)
+//        .execute("POST")
+
+    val bytesInStream = 1024
+    val result = Http(targetURL).postMulti(MultiPart("photo", name, "image/png", input, bytesInStream,
+      lenWritten => {
+        println(s"Wrote $lenWritten bytes out of $bytesInStream total for headshot.png")
+      })).asString
+
+    result.body
 
   }
 
-  private def getMetricsAsync(metrics: Seq[String]): Future[String] = {
-    val resultFuture: Future[WSResponse] = callAsync("metrics", Seq(
-      ("path", "[]"),
-      ("columns", Json.stringify(Json.toJson(metrics)))
-    ))
-    resultFuture.map{ response =>
-      val json = Json.parse(response.body)
-      Json.stringify(Json.toJson(Map("slss"->json("data")("slss"), "slsu"->json("data")("slsu"))))
-    }
-  }
 
-  private def callAsync(method: String, postData: Seq[(String,String)]): Future[WSResponse] = {
-    val result = ws.url(s"${"xxx"}/${"yyy"}/api")
-      .addHttpHeaders(getHeader.toSeq:_*)
-      .addQueryStringParameters(getCommParams.toSeq:_*)
-      .addQueryStringParameters("method"-> method)
-      .withRequestTimeout(10000.millis)
-      .post(postData.toMap)
-    result
-  }
-
-  private def loadViewAsync(view: String): Future[WSResponse] = {
-    val resultFuture: Future[WSResponse] = callAsync("loadView", Seq(("id", view)))
-    resultFuture
-  }
-
-  private def getSessionIdAsync: Future[String] = {
-    if (sessionId == null || sessionId.isEmpty) {
-      val resultFuture = ws.url(s"${"xxx"}/${"yyy"}/session")
-        .withRequestTimeout(10000.millis)
-        .get().map { response =>
-          val json = Json.parse(response.body)
-          sessionId = json("data")("session").as[String]
-          sessionId
-        }
-      resultFuture
-    }else{
-      Future {sessionId}
-    }
-  }
-
-  def getCommParams = {
-    Map("hsession" -> sessionId,
-      "org" -> "yyy",
-      "user" -> "zzz")
-  }
 
 }

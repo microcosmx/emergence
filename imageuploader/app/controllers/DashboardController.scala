@@ -22,26 +22,29 @@ class DashboardController @Inject() (cc: ControllerComponents,
   }
 
   def uploadImage() = Action.async { implicit request =>
-    Future{
-      val urlText = request.body.asText.get
-      val urls = Json.parse(urlText)("urls")
-      val urlResult: JsResult[Seq[String]] = urls.validate[Seq[String]]
+    val urlText = request.body.asText.get
+    val urls = Json.parse(urlText)("urls")
+    val urlResult: JsResult[Seq[String]] = urls.validate[Seq[String]]
 
-      urlResult match {
-        case s: JsSuccess[Seq[String]] => {
-          val urls = s.get
-          val result = psa.uploadImages(urls)
+    urlResult match {
+      case s: JsSuccess[Seq[String]] => {
+        val urls = s.get
+        val result = psa.uploadImages(urls)
+        result.map(x => {
           Ok(Json.obj(
-            "jobId" -> result
+            "jobId" -> x(0)
           ))
-        }
-        case e: JsError => InternalServerError(Json.obj(
+        })
+
+      }
+      case e: JsError => Future{
+        InternalServerError(Json.obj(
           "jobId" -> "Failed"
         ))
       }
-
-
     }
+
+
 
   }
 

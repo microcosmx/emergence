@@ -11,4 +11,13 @@ post body:
 	]
 }
 
+upload:
+https://imgbb.com/
+https://api.imgbb.com/
+
+curl --location --request POST "https://api.imgbb.com/1/upload?key=xgzx123" --form "image=R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+
+
+
+
 
