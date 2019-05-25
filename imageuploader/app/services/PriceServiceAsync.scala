@@ -74,7 +74,7 @@ class PriceServiceAsyncImpl @Inject()(langs: Langs,
 
       val bytes2 = Stream.continually(input.read).takeWhile(_ != -1).map(_.toByte).toArray
       logger.info(bytes2.length.toString)
-      val result = callAsync2(fileName, bytes2)
+      val result = callAsync(fileName, bytes2)
       println(result)
       logger.info(result)
       val json = Json.parse(result)
@@ -89,7 +89,7 @@ class PriceServiceAsyncImpl @Inject()(langs: Langs,
   private def callAsync(name: String, fileBytes: Array[Byte]) = {
 
     val result = Http(targetURL).postData(fileBytes)
-      .header("Content-Type", "application/pdf")
+      .header("Content-Type", "application/octet-stream")
       .header("Content-Transfer-Encoding", "base64")
       .asString
 

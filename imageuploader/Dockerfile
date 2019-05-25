@@ -7,12 +7,10 @@ RUN yum clean all && yum -y update && \
     yum install -y iproute which vim java-1.8.0-openjdk.x86_64 epel-release
 
 RUN mkdir -p /opt/src
-ADD start-dashboards.sh /opt/src
-ADD PhxqaCertRoot.crt /opt/src
-RUN keytool -import -keystore /etc/pki/java/cacerts -storepass changeit -file /opt/src/PhxqaCertRoot.crt -alias qaca -noprompt -v
+ADD start-service.sh /opt/src
 
 RUN mkdir -p /opt/src/target/scala-2.11
-ADD target/scala-2.11/imageuploader-assembly-0.1.jar /opt/src/target/scala-2.11
+ADD target/scala-2.11/imageuploader-assembly-0.1-deps.jar /opt/src/target/scala-2.11
 
 WORKDIR /opt/src
 
